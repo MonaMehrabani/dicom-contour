@@ -9,6 +9,8 @@ import shutil
 import operator
 import warnings
 import math
+from pathlib import Path
+from pydicom import dcmread
 
 def get_contour_file(path):
     """
@@ -82,8 +84,11 @@ def coord2pixels(contour_dataset, path):
 
     # extract the image id corresponding to given countour
     # read that dicom file (assumes filename = sopinstanceuid.dcm)
-    img_ID = contour_dataset.ContourImageSequence[0].ReferencedSOPInstanceUID
-    img = dicom.read_file(path + img_ID + '.dcm')
+    # To resolve
+    img_path = "/pathtoimages"
+    image_datasets = [dcmread(filename) for filename in Path(img_path).glob("*.dcm")]
+    iUID_to_filename = {ds.SOPInstanceUID: ds.filename for ds in image_datasets if 'PixelData' in ds}
+    img = dcmread(Path(path) / iUID_to_filename[img_id])
     img_arr = img.pixel_array
 
     # physical distance between the center of each pixel
